@@ -1,0 +1,5 @@
+.vscode
+build
+conan_venv
+cmake
+CMakeUserPresets.json
