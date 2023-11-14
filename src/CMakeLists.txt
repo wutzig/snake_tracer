@@ -18,3 +18,9 @@ target_link_libraries(snake_tracer
     opengl::opengl
     glm::glm
 )
+
+if (MSVC)
+    add_compile_options(/W3)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
