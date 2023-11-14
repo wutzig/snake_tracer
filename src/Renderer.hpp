@@ -9,7 +9,7 @@ class Renderer{
         void draw_scence(uint32_t shader_program_id);
         void use_compute_shader(uint32_t compute_program_id);
         void delete_buffers();
-        void update_uniform_locations(const UniformLocations& uniformLocations);
+        void set_uniform_locations(const UniformLocations& uniformLocations);
         void add_sphere(glm::vec3 position, glm::vec3 color, float radius);
         void add_square(glm::vec3 position, glm::vec3 normal, glm::vec3 uDirection, glm::vec3 vDirection, glm::vec3 color);
         void add_cylinder(glm::vec3 position, glm::vec3 axis, glm::vec3 color, float radius, float length);
@@ -19,8 +19,8 @@ class Renderer{
         bool grow = true;
     private:
         uint32_t vao_id, vertex_buffer_id, uvBufferID, element_buffer_id, textureID, frameBufferID,
-                     numSpheres = 0, numCylinders = 0;
-        glm::vec3 quat_rot(glm::vec3 point, glm::vec3 axis, float angle, glm::vec3 origin = glm::vec3(0.0, 0.0, 0.0));
+            numSpheres = 0, numCylinders = 0;
+        static glm::vec3 quat_rot(glm::vec3 point, glm::vec3 axis, float angle, glm::vec3 origin = glm::vec3(0.0, 0.0, 0.0));
         UniformLocations locations;
         glm::vec3 camera_dir;
         glm::vec3 camera_right;

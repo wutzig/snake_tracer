@@ -33,12 +33,13 @@ struct UniformLocations{
 class ShaderProgram {
     public:
         ShaderProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path);
-        uint32_t shader_program_id;
+        const uint32_t shader_program_id;
         void delete_program();
-        UniformLocations locations;
+        const UniformLocations& get_uniform_locations() const;
     private:
         uint32_t load_shader(const char* source, uint32_t type);
         void load_uniforms();
+        UniformLocations locations;
         uint32_t vertex_shader_id;
         uint32_t fragment_shader_id;
         uint32_t compute_shader_id;

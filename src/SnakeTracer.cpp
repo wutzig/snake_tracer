@@ -1,7 +1,7 @@
 #include "SnakeTracer.hpp"
 #include <iostream>
 #include <functional>
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path) {
@@ -14,7 +14,7 @@ SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_sh
     compute_program = new ShaderProgram(NULL, NULL, compute_shader_path);
 
     renderer = new Renderer();
-    renderer->update_uniform_locations(compute_program->locations);
+    renderer->set_uniform_locations(compute_program->get_uniform_locations());
     renderer->create_objects(compute_program->shader_program_id);
     
     then = std::clock();
@@ -65,7 +65,7 @@ bool SnakeTracer::init() {
         std::cerr << "init oops!\n";
         return false;
     }
-    window = glfwCreateWindow(800, 600, "My Title", NULL, NULL);
+    window = glfwCreateWindow(800, 600, "snake_tracer", NULL, NULL);
     if (!window) {
         std::cerr << "window oops!\n";
         glfwTerminate();

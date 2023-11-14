@@ -1,7 +1,8 @@
 #include "Renderer.hpp"
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 
 Renderer::Renderer(){
     vao_id = 0;
@@ -80,7 +81,7 @@ Renderer::Renderer(){
 
     glBindVertexArray(NULL);
 }
-void Renderer::draw_scence(unsigned int shader_program_id){
+void Renderer::draw_scence(uint32_t shader_program_id){
     glClearColor(0.2f, 0.2f, 0.7f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(shader_program_id);
@@ -214,8 +215,8 @@ void Renderer::add_segment(int orientation, float direction){
         add_sphere(sphere_positions.back(), sphere_colors.front(), radius);
     }
 }
-void Renderer::update_uniform_locations(const UniformLocations& uniformLocations){
-    locations = uniformLocations;
+void Renderer::set_uniform_locations(const UniformLocations& uniform_locations){
+    locations = uniform_locations;
 }
 glm::vec3 Renderer::quat_rot(glm::vec3 point, glm::vec3 axis, float angle, glm::vec3 origin){
     glm::vec3 r = axis * (float)glm::sin(angle / 2.0f);

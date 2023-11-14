@@ -1,12 +1,13 @@
 #include "ShaderProgram.hpp"
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
-ShaderProgram::ShaderProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path){
+ShaderProgram::ShaderProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path) : 
+        shader_program_id(glCreateProgram())
+{
     std::cout << "creating shader program\n";
-    shader_program_id = glCreateProgram();
     if(vertex_shader_path != NULL){
         vertex_shader_id = load_shader(vertex_shader_path, GL_VERTEX_SHADER);
         glAttachShader(shader_program_id, vertex_shader_id);
@@ -28,14 +29,19 @@ ShaderProgram::ShaderProgram(const char* vertex_shader_path, const char* fragmen
     glGetProgramiv(shader_program_id, GL_LINK_STATUS, &is_linked);
     if(is_linked == GL_FALSE){
         int max_length = 0;
-        char* err = new char[max_length + 1];
         glGetProgramiv(shader_program_id, GL_INFO_LOG_LENGTH, &max_length);
+        char* err = new char[max_length];
         glGetProgramInfoLog(shader_program_id, max_length, &max_length, err);
         std::cerr << err;
+        delete err;
         glDeleteProgram(shader_program_id);
         return;
     }
     load_uniforms();
+}
+
+const UniformLocations& ShaderProgram::get_uniform_locations() const {
+    return locations;
 }
 void ShaderProgram::delete_program(){
     glDetachShader(shader_program_id, vertex_shader_id);
@@ -69,10 +75,11 @@ uint32_t ShaderProgram::load_shader(const char* path, unsigned int type){
     glGetShaderiv(shader_id, GL_COMPILE_STATUS, &is_compiled);
     if(is_compiled == GL_FALSE){
         int max_length = 0;
-        char* err = new char[max_length + 1];
         glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &max_length);
+        char* err = new char[max_length];
         glGetShaderInfoLog(shader_id, max_length, &max_length, err);
         std::cerr << err;
+        delete err;
         glDeleteShader(shader_id);
     }
 
