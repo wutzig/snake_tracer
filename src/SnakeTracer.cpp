@@ -17,7 +17,7 @@ SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_sh
     renderer->set_uniform_locations(compute_program->get_uniform_locations());
     renderer->create_objects(compute_program->shader_program_id);
     
-    then = std::clock();
+    then = std::chrono::high_resolution_clock::now();
 }
 
 SnakeTracer::~SnakeTracer() {
@@ -48,14 +48,14 @@ bool SnakeTracer::is_running() {
 }
 void SnakeTracer::print_fps() {
     frames++;
-    now = std::clock();
-    delta_time = now - then;
+    now = std::chrono::high_resolution_clock::now();
+    delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - then).count();
     then = now;
     delta_time_fps += delta_time;
     renderer->delta_time = delta_time;
     
-    if(glm::floor(delta_time_fps) >= 1000){
-        std::cout << glm::ceil((float)frames * 1000.0f / delta_time_fps) << " \r";
+    if(std::floor(delta_time_fps) >= 1000){
+        std::cout << std::ceil((float)frames * 1000.0f / delta_time_fps) << " \r";
         delta_time_fps = 0.0f; 
         frames = 0;
     }

@@ -18,9 +18,9 @@ private:
     ShaderProgram* shader_program;
     ShaderProgram* compute_program;
 
-    int frames, fps;
-    float delta_time, delta_time_fps;
-    std::clock_t then, now;
+    int frames = 0, fps = 0;
+    float delta_time = 0, delta_time_fps = 0;
+    std::chrono::time_point<std::chrono::high_resolution_clock> then, now;
     bool should_run = true;
     bool init();
 };
