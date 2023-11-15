@@ -106,133 +106,127 @@ HitInfo shoot_ray_at_square(Ray ray, Square square, float closest_dist){
 }
 
 void main() {
-  ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
-  vec3 ray_dir = normalize(screen_dist * camera_dir 
-                          + (float(pixel_coords.x) - (width / 2.0)) * camera_right 
-                          + (float(pixel_coords.y) - (height / 2.0)) * camera_up);
-  vec3 color = vec3(0.0, 0.0, 0.0);
-  Ray ray = Ray(camera_pos, ray_dir);
-  float weight = 1.0;
+    ivec2 pixel_coords = ivec2(gl_GlobalInvocationID.xy);
+    vec3 ray_dir = normalize(screen_dist * camera_dir 
+        + (float(pixel_coords.x) - (width / 2.0)) * camera_right 
+        + (float(pixel_coords.y) - (height / 2.0)) * camera_up
+    );
+    vec3 color = vec3(0.0, 0.0, 0.0);
+    Ray ray = Ray(camera_pos, ray_dir);
+    float weight = 1.0;
 
-  for(int bounces = 0; bounces < 3; bounces++){
-      int hitObjectId = 0;
-      HitInfo bestHit = HitInfo(false, MAX);
-      for(int j = 0; j < 3; j++){
-          HitInfo thisHit = shoot_ray_at_square(ray, squares[j], bestHit.dist_from_cam);
-          if(thisHit.hit){    
-              bestHit = thisHit;
-              hitObjectId = j;
-          }
-      }
+    for(int bounces = 0; bounces < 3; bounces++){
+        int hitObjectId = 0;
+        HitInfo bestHit = HitInfo(false, MAX);
+        for(int j = 0; j < 3; j++){
+            HitInfo thisHit = shoot_ray_at_square(ray, squares[j], bestHit.dist_from_cam);
+            if(thisHit.hit){    
+                bestHit = thisHit;
+                hitObjectId = j;
+            }
+        }
+        for(int j = 0; j < 50; j++){
+            if( j >= numSpheres){
+                break;
+            }
+            else{
+                HitInfo thisHit = shoot_ray_at_sphere(ray, spheres[j], bestHit.dist_from_cam);
+                if(thisHit.hit){
+                    bestHit = thisHit;
+                    hitObjectId = 3 + j;
+                }
+            }
+        }
+        for(int j = 0; j < 50; j++){
+            if( j >= numCylinders){
+                break;
+            }
+            else{
+                HitInfo thisHit = shoot_ray_at_cylinder(ray, cylinders[j], bestHit.dist_from_cam);
+                if(thisHit.hit){
+                    bestHit = thisHit;
+                    hitObjectId = 3 + numSpheres + j;
+                }
+            }
+        }
 
-      for(int j = 0; j < 50; j++){
-          if( j >= numSpheres){
-              break;
-          }
-          else{
-              HitInfo thisHit = shoot_ray_at_sphere(ray, spheres[j], bestHit.dist_from_cam);
-              if(thisHit.hit){
-                  bestHit = thisHit;
-                  hitObjectId = 3 + j;
-              }
-          }
-      }
+        if(bestHit.hit){
+            float diff_coeff = 0.0;
+            vec3 normal_at_point, hit_color;
+            vec3 intersect_point = ray.origin + 0.99999 * bestHit.dist_from_cam * ray.direction;
+            if ( hitObjectId < 3){
+                normal_at_point = squares[hitObjectId].norm;
+                hit_color = squares[hitObjectId].color;
+            }
+            else if( hitObjectId < 3 + numSpheres){
+                normal_at_point = spheres[hitObjectId - 3].inv_radius * (ray.origin + bestHit.dist_from_cam * ray.direction - spheres[hitObjectId - 3].center);
+                hit_color = spheres[hitObjectId - 3].color;
+            }
+            else{
+                int hitCylinderId = hitObjectId - 3 - numSpheres;
+                vec3 cylinder_pos_to_intersect = ray.origin + bestHit.dist_from_cam * ray.direction - cylinders[hitCylinderId].pos;
+                normal_at_point = normalize(cylinder_pos_to_intersect - dot(cylinders[hitCylinderId].axis, cylinder_pos_to_intersect) * cylinders[hitCylinderId].axis);
+                hit_color = cylinders[hitCylinderId].color;
+            }
+            vec3 point_to_light = light - intersect_point;
+            float dist_from_light2 = dot(point_to_light, point_to_light);
+            vec3 shadow_ray = point_to_light / sqrt(dist_from_light2);
 
-      for(int j = 0; j < 50; j++){
-          if( j >= numCylinders){
-              break;
-          }
-          else{
-              HitInfo thisHit = shoot_ray_at_cylinder(ray, cylinders[j], bestHit.dist_from_cam);
-              if(thisHit.hit){
-                  bestHit = thisHit;
-                  hitObjectId = 3 + numSpheres + j;
-              }
-          }
-      }
-
-      if(bestHit.hit){
-          float diff_coeff = 0.0;
-          vec3 normal_at_point, hit_color;
-          vec3 intersect_point = ray.origin + 0.99999 * bestHit.dist_from_cam * ray.direction;
-          if ( hitObjectId < 3){
-              normal_at_point = squares[hitObjectId].norm;
-              hit_color = squares[hitObjectId].color;
-          }
-          else if( hitObjectId < 3 + numSpheres){
-              normal_at_point = spheres[hitObjectId - 3].inv_radius * (ray.origin + bestHit.dist_from_cam * ray.direction - spheres[hitObjectId - 3].center);
-              hit_color = spheres[hitObjectId - 3].color;
-          }
-          else{
-              int hitCylinderId = hitObjectId - 3 - numSpheres;
-              vec3 cylinder_pos_to_intersect = ray.origin + bestHit.dist_from_cam * ray.direction - cylinders[hitCylinderId].pos;
-              normal_at_point = normalize(cylinder_pos_to_intersect - dot(cylinders[hitCylinderId].axis, cylinder_pos_to_intersect) * cylinders[hitCylinderId].axis);
-              hit_color = cylinders[hitCylinderId].color;
-          }
-          vec3 point_to_light = light - intersect_point;
-          float dist_from_light2 = dot(point_to_light, point_to_light);
-          vec3 shadow_ray = point_to_light / sqrt(dist_from_light2);
-
-          bool hit_light = true;
-          float light_cos = dot(normal_at_point, shadow_ray);
-          Ray shadowRay = Ray(intersect_point, shadow_ray);
-          if(light_cos > 0.0){
-              for (int j = 0; j < 3; j++){
-                  if(shoot_ray_at_square( shadowRay, squares[j], MAX ).hit){
-                      hit_light = false;
-                      break;
-                  }
-              }
-
-              if(hit_light){
-                  for (int j = 0; j < 50; j++){
-                      if( j >= numSpheres){
-                          break;
-                      }
-                      else{
-                          if(shoot_ray_at_sphere( shadowRay, spheres[j], MAX ).hit){
-                              hit_light = false;
-                              break;
-                          }
-                      }
-                  }
-              }
-
-              if(hit_light){
-                  for (int j = 0; j < 50; j++){
-                      if( j >= numCylinders){
-                          break;
-                      }
-                      else{
-                          if(shoot_ray_at_cylinder( shadowRay, cylinders[j], MAX ).hit){
-                              hit_light = false;
-                              break;
-                          }
-                      }
-                  }
-              }
-
-              if(hit_light){
-                  diff_coeff = light_cos;
-              }
-          }
-          
-          ray = Ray(intersect_point, reflect(ray.direction, normal_at_point));
-          float spec_coeff = pow(max(0.0, dot(shadow_ray, ray.direction)), 40.0);
-          diff_coeff = max(0.3, diff_coeff);
-          vec3 light_color = vec3(1.0, 1.0, 1.0);
-          hit_color = vec3(hit_color.x * light_color.x, hit_color.y * light_color.y, hit_color.z * light_color.z);
-          color += weight * diff_coeff * (hit_color + spec_coeff * light_color);
-          weight *= 0.5 * diff_coeff;
-      }
-      else{
-          if(bounces == 0){ color = vec3(0.7,0.7,0.7); }
-          break;
-      }
-                          
-      if(weight < 0.001){
-          break;
-      }
-  }
-  imageStore(renderedTexture, pixel_coords, vec4(color, 1.0));
+            bool hit_light = true;
+            float light_cos = dot(normal_at_point, shadow_ray);
+            Ray shadowRay = Ray(intersect_point, shadow_ray);
+            if(light_cos > 0.0){
+                for (int j = 0; j < 3; j++){
+                    if(shoot_ray_at_square( shadowRay, squares[j], MAX ).hit){
+                        hit_light = false;
+                        break;
+                    }
+                }
+                if(hit_light){
+                    for (int j = 0; j < 50; j++){
+                        if( j >= numSpheres){
+                            break;
+                        }
+                        else if(shoot_ray_at_sphere( shadowRay, spheres[j], MAX ).hit){
+                            hit_light = false;
+                            break;
+                        }
+                    }
+                }
+                if(hit_light){
+                    for (int j = 0; j < 50; j++){
+                        if( j >= numCylinders){
+                            break;
+                        }
+                        else if(shoot_ray_at_cylinder( shadowRay, cylinders[j], MAX ).hit){
+                            hit_light = false;
+                            break;
+                        }
+                    }
+                }
+                if(hit_light){
+                    diff_coeff = light_cos;
+                }
+            }
+            
+            ray = Ray(intersect_point, reflect(ray.direction, normal_at_point));
+            float spec_coeff = pow(max(0.0, dot(shadow_ray, ray.direction)), 40.0);
+            diff_coeff = max(0.3, diff_coeff);
+            vec3 light_color = vec3(1.0, 1.0, 1.0);
+            hit_color = vec3(hit_color.x * light_color.x, hit_color.y * light_color.y, hit_color.z * light_color.z);
+            color += weight * diff_coeff * (hit_color + spec_coeff * light_color);
+            weight *= 0.5 * diff_coeff;
+        }
+        else{
+            if(bounces == 0){
+                color = vec3(0.7,0.7,0.7);
+            }
+            break;
+        }
+                            
+        if(weight < 0.001){
+            break;
+        }
+    }
+    imageStore(renderedTexture, pixel_coords, vec4(color, 1.0));
 }
