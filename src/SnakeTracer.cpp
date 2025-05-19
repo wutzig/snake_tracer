@@ -10,25 +10,22 @@ SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_sh
         std::exit(1);
     }
 
-    shader_program = new ShaderProgram(vertex_shader_path, fragment_shader_path, NULL);
-    compute_program = new ShaderProgram(NULL, NULL, compute_shader_path);
+    m_shader_program.set_shaders(vertex_shader_path, fragment_shader_path, NULL);
+    m_compute_program.set_shaders(NULL, NULL, compute_shader_path);
 
-    renderer = new Renderer();
-    renderer->set_uniform_locations(compute_program->get_uniform_locations());
-    renderer->create_objects(compute_program->shader_program_id);
+    m_renderer.initialize();
+    
+    m_scene.set_uniform_locations(m_compute_program.get_shader_program_id());
+    m_scene.initialize(m_compute_program.get_shader_program_id());
+    m_snake.set_uniform_locations(m_compute_program.get_shader_program_id());
     
     then = std::chrono::high_resolution_clock::now();
 }
 
 SnakeTracer::~SnakeTracer() {
-    shader_program->delete_program();
-    delete shader_program;
-
-    compute_program->delete_program();
-    delete compute_program;
-
-    renderer->delete_buffers();
-    delete renderer;
+    m_shader_program.delete_program();
+    m_compute_program.delete_program();
+    m_renderer.delete_buffers();
     
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -39,8 +36,8 @@ void SnakeTracer::end_frame() {
     glfwSwapBuffers(window);
 }
 void SnakeTracer::draw_scene() {
-    renderer->use_compute_shader(compute_program->shader_program_id);
-    renderer->draw_scence(shader_program->shader_program_id);
+    m_renderer.use_compute_shader(m_compute_program.get_shader_program_id(), m_snake, m_scene, m_delta_time);
+    m_renderer.draw_scence(m_shader_program.get_shader_program_id());
 }
 
 bool SnakeTracer::is_running() {
@@ -49,10 +46,9 @@ bool SnakeTracer::is_running() {
 void SnakeTracer::print_fps() {
     frames++;
     now = std::chrono::high_resolution_clock::now();
-    delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - then).count();
+    m_delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(now - then).count();
     then = now;
-    delta_time_fps += delta_time;
-    renderer->delta_time = delta_time;
+    delta_time_fps += m_delta_time;
     
     if(std::floor(delta_time_fps) >= 1000){
         std::cout << std::ceil((float)frames * 1000.0f / delta_time_fps) << " \r";
@@ -85,25 +81,25 @@ bool SnakeTracer::init() {
             SnakeTracer* self = static_cast<SnakeTracer*>(glfwGetWindowUserPointer(w));
             switch(key) {
             case GLFW_KEY_LEFT:
-                self->renderer->add_segment(0, -1.0);
+                self->m_snake.add_segment(0, -1.0);
                 break;
             case GLFW_KEY_RIGHT:
-                self->renderer->add_segment(0, 1.0);
+                self->m_snake.add_segment(0, 1.0);
                 break;
             case GLFW_KEY_UP:
-                self->renderer->add_segment(2, -1.0);
+                self->m_snake.add_segment(2, -1.0);
                 break;
             case GLFW_KEY_DOWN:
-                self->renderer->add_segment(2, 1.0);
+                self->m_snake.add_segment(2, 1.0);
                 break;
             case GLFW_KEY_LEFT_CONTROL:
-                self->renderer->add_segment(1, -1.0);
+                self->m_snake.add_segment(1, -1.0);
                 break;
             case GLFW_KEY_LEFT_SHIFT:
-                self->renderer->add_segment(1, 1.0);
+                self->m_snake.add_segment(1, 1.0);
                 break;
             case GLFW_KEY_G:
-                self->renderer->grow = !self->renderer->grow;
+                self->m_snake.toggle_grow();
                 break;
             case GLFW_KEY_ESCAPE:
                 self->should_run = false;

@@ -28,6 +28,7 @@ struct Cylinder{
 };
 
 uniform Square squares[3];
+uniform Sphere apple;
 uniform Sphere spheres[100];
 uniform Cylinder cylinders[100];
 uniform vec3 light;
@@ -125,29 +126,25 @@ void main() {
                 hitObjectId = j;
             }
         }
-        for(int j = 0; j < 50; j++){
-            if( j >= numSpheres){
-                break;
-            }
-            else{
-                HitInfo thisHit = shoot_ray_at_sphere(ray, spheres[j], bestHit.dist_from_cam);
-                if(thisHit.hit){
-                    bestHit = thisHit;
-                    hitObjectId = 3 + j;
-                }
+        for(int j = 0; j < numSpheres; j++){
+            HitInfo thisHit = shoot_ray_at_sphere(ray, spheres[j], bestHit.dist_from_cam);
+            if(thisHit.hit){
+                bestHit = thisHit;
+                hitObjectId = 3 + j;
             }
         }
-        for(int j = 0; j < 50; j++){
-            if( j >= numCylinders){
-                break;
+        for(int j = 0; j < numCylinders; j++){
+            HitInfo thisHit = shoot_ray_at_cylinder(ray, cylinders[j], bestHit.dist_from_cam);
+            if(thisHit.hit){
+                bestHit = thisHit;
+                hitObjectId = 3 + numSpheres + j;
             }
-            else{
-                HitInfo thisHit = shoot_ray_at_cylinder(ray, cylinders[j], bestHit.dist_from_cam);
-                if(thisHit.hit){
-                    bestHit = thisHit;
-                    hitObjectId = 3 + numSpheres + j;
-                }
-            }
+        }
+
+        HitInfo thisHit = shoot_ray_at_sphere(ray, apple, bestHit.dist_from_cam);
+        if(thisHit.hit){
+            bestHit = thisHit;
+            hitObjectId = 3 + numSpheres + numCylinders;
         }
 
         if(bestHit.hit){
@@ -162,11 +159,17 @@ void main() {
                 normal_at_point = spheres[hitObjectId - 3].inv_radius * (ray.origin + bestHit.dist_from_cam * ray.direction - spheres[hitObjectId - 3].center);
                 hit_color = spheres[hitObjectId - 3].color;
             }
-            else{
+            else if( hitObjectId < 3 + numSpheres + numCylinders )
+            {
                 int hitCylinderId = hitObjectId - 3 - numSpheres;
                 vec3 cylinder_pos_to_intersect = ray.origin + bestHit.dist_from_cam * ray.direction - cylinders[hitCylinderId].pos;
                 normal_at_point = normalize(cylinder_pos_to_intersect - dot(cylinders[hitCylinderId].axis, cylinder_pos_to_intersect) * cylinders[hitCylinderId].axis);
                 hit_color = cylinders[hitCylinderId].color;
+            }
+            else
+            {
+                normal_at_point = apple.inv_radius * (ray.origin + bestHit.dist_from_cam * ray.direction - apple.center);
+                hit_color = apple.color;
             }
             vec3 point_to_light = light - intersect_point;
             float dist_from_light2 = dot(point_to_light, point_to_light);
@@ -183,25 +186,24 @@ void main() {
                     }
                 }
                 if(hit_light){
-                    for (int j = 0; j < 50; j++){
-                        if( j >= numSpheres){
-                            break;
-                        }
-                        else if(shoot_ray_at_sphere( shadowRay, spheres[j], MAX ).hit){
+                    for (int j = 0; j < numSpheres; j++){
+                        if(shoot_ray_at_sphere( shadowRay, spheres[j], MAX ).hit){
                             hit_light = false;
                             break;
                         }
                     }
                 }
                 if(hit_light){
-                    for (int j = 0; j < 50; j++){
-                        if( j >= numCylinders){
-                            break;
-                        }
-                        else if(shoot_ray_at_cylinder( shadowRay, cylinders[j], MAX ).hit){
+                    for (int j = 0; j < numCylinders; j++){
+                        if(shoot_ray_at_cylinder( shadowRay, cylinders[j], MAX ).hit){
                             hit_light = false;
                             break;
                         }
+                    }
+                }
+                if(hit_light) {
+                    if(shoot_ray_at_sphere( shadowRay, apple, MAX ).hit){
+                        hit_light = false;
                     }
                 }
                 if(hit_light){

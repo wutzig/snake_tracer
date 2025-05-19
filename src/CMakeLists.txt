@@ -8,9 +8,11 @@ find_package(glm REQUIRED)
 
 add_executable(snake_tracer
     main.cpp
+    Renderer.cpp
+    Scene.cpp
+    Snake.cpp
     SnakeTracer.cpp
     ShaderProgram.cpp
-    Renderer.cpp
 )
 target_link_libraries(snake_tracer
     glfw

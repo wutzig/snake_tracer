@@ -2,6 +2,7 @@
 #include "SnakeTracer.hpp"
 
 int main() {
+    std::cout << "Welcome to SnakeTracer!\n";
     SnakeTracer snake_tracer("src/glsl/vertex.glsl", "src/glsl/fragment.glsl", "src/glsl/compute.glsl");
     
     while (snake_tracer.is_running()){

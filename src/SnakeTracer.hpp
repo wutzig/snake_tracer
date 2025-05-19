@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "ShaderProgram.hpp"
 #include "Renderer.hpp"
+#include "Snake.hpp"
 #include <chrono>
 class SnakeTracer {
 public:
@@ -14,13 +15,16 @@ public:
     bool is_running();
 private:
     GLFWwindow* window;
-    Renderer* renderer;
-    ShaderProgram* shader_program;
-    ShaderProgram* compute_program;
+    Renderer m_renderer;
+    ShaderProgram m_shader_program;
+    ShaderProgram m_compute_program;
 
     int frames = 0, fps = 0;
-    float delta_time = 0, delta_time_fps = 0;
+    float m_delta_time = 0, delta_time_fps = 0;
     std::chrono::time_point<std::chrono::high_resolution_clock> then, now;
     bool should_run = true;
     bool init();
+
+    Snake m_snake;
+    Scene m_scene;
 };
