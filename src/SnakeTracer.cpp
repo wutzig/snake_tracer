@@ -1,8 +1,8 @@
 #include "SnakeTracer.hpp"
 #include <iostream>
-#include <functional>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <cmath>
 
 SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path) {
     if (!init()) {

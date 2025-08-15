@@ -1,9 +1,9 @@
 #include "Snake.hpp"
 #include <string>
-#include <iostream>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 
 Snake::Snake()
 {
@@ -144,3 +144,4 @@ void Snake::set_uniform_locations(uint32_t shader_program_id)
     m_uniform_locations.num_cylinders = glGetUniformLocation(shader_program_id, "numCylinders");
     m_uniform_locations.num_spheres = glGetUniformLocation(shader_program_id, "numSpheres");
 }
+

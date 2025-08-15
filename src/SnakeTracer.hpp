@@ -5,6 +5,7 @@
 #include "Renderer.hpp"
 #include "Snake.hpp"
 #include <chrono>
+
 class SnakeTracer {
 public:
     SnakeTracer(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path);
