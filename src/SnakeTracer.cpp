@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
+#include <chrono>
 
 SnakeTracer::SnakeTracer(const char* vertex_shader_path, const char* fragment_shader_path, const char* compute_shader_path) {
     if (!init()) {
@@ -104,8 +105,9 @@ bool SnakeTracer::init() {
             case GLFW_KEY_ESCAPE:
                 self->should_run = false;
                 break;
+            }
         }
-    }});
+    });
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int new_screen_width, int new_screen_height) {
         glViewport(0, 0, new_screen_width, new_screen_height);
     });
